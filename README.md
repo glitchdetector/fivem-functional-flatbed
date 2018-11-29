@@ -1,5 +1,8 @@
 # fivem-functional-flatbed
+
 A FiveM compatible version of the MTL Flatbed mod https://gta5-mods.com/vehicles/mtl-flatbed-tow-truck
+
+Thread on the FiveM Forums: https://forum.fivem.net/t/release-flatbed-w-working-bed/192047
 
 # How to use:
  + Spawn the `flatbed3` vehicle (and get in), a bed should be created
