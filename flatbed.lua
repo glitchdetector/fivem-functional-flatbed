@@ -241,6 +241,8 @@ Citizen.CreateThread(function()
                                 local newCar = getVehicleInDirection(bedPos + vector3(0.0, 0.0, 0.25), bedPos + vector3(0.0, 0.0, 2.25))
                                 if newCar then
                                     local carPos = GetEntityCoords(newCar, false)
+				    NetworkRequestControlOfEntity(newCar)
+				    while not NetworkHasControlOfEntity(newCar) do Wait(0) end
                                     AttachEntityToEntity(newCar, bed, 0, attachmentOffset[1] + vector3(0.0, 0.0, carPos.z - bedPos.z - 0.50), attachmentOffset[2], 0, 0, false, 0, 0, 1)
                                     car = newCar
                                     DecorSetInt(veh, "flatbed3_car", VehToNet(newCar))
