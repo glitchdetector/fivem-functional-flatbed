@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CVehicleModelInfoVarGlobal>    
+  <Kits>
+		<Item>
+      <kitName>0_default_modkit</kitName>
+      <id value="0" />	 	  
+      <kitType>MKT_SPECIAL</kitType>
+      <visibleMods />
+	   	<linkMods />
+      <statMods />
+      <slotNames />
+      <liveryNames>
+        <Item>FLATBED3_LV1</Item>
+        <Item>FLATBED3_LV2</Item>
+        <Item>FLATBED3_LV3</Item>
+        <Item>FLATBED3_LV4</Item>
+        <Item>FLATBED3_LV5</Item>
+        <Item>FLATBED3_LV6</Item>
+      </liveryNames>
+    </Item>
+	</Kits>
+  <Lights />
+</CVehicleModelInfoVarGlobal>
