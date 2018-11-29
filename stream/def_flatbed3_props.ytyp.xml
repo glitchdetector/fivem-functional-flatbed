@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<CMapTypes>
+  <extensions/>
+  <archetypes>
+
+  <Item type="CBaseArchetypeDef"><lodDist value="500.0"/><flags value="32"/><specialAttribute value="0"/><bbMin x="0.0" y="0.0" z="0.0"/><bbMax x="0.0" y="0.0" z="0.0"/><bsCentre x="0.0" y="0.0" z="0.0"/><bsRadius value="0.0"/><hdTextureDist value="5.0"/><name>inm_flatbed_base</name><textureDictionary>inm_flatbed_base</textureDictionary><clipDictionary/><drawableDictionary/><physicsDictionary>prop_inm_flatbed_base</physicsDictionary><assetType>ASSET_TYPE_DRAWABLE</assetType><assetName>inm_flatbed_base</assetName><extensions/></Item></archetypes>
+  <name>def_flatbed3_props</name>
+  <dependencies/>
+  <compositeEntityTypes/>
+</CMapTypes>
