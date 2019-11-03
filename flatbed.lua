@@ -44,6 +44,130 @@ AddTextEntry(controllerMessageLoweredCar, "Press ~INPUT_CONTEXT~ to ~y~raise ~w~
 AddTextEntry(controllerMessageLoweredNoCar, "Press ~INPUT_CONTEXT~ to ~y~raise ~w~the bed.~n~Press ~INPUT_DETONATE~ to ~g~attach ~w~a vehicle.")
 AddTextEntry(controllerMessageRaised, "Press ~INPUT_CONTEXT~ to ~y~lower ~w~the bed.")
 
+local entityEnumerator = {
+	__gc = function(enum)
+		if enum.destructor and enum.handle then
+			enum.destructor(enum.handle)
+		end
+
+		enum.destructor = nil
+		enum.handle = nil
+	end
+}
+
+local function EnumerateEntities(initFunc, moveFunc, disposeFunc)
+	return coroutine.wrap(function()
+		local iter, id = initFunc()
+		if not id or id == 0 then
+			disposeFunc(iter)
+			return
+		end
+
+		local enum = {handle = iter, destructor = disposeFunc}
+		setmetatable(enum, entityEnumerator)
+
+		local next = true
+		repeat
+		coroutine.yield(id)
+		next, id = moveFunc(iter)
+		until not next
+
+		enum.destructor, enum.handle = nil, nil
+		disposeFunc(iter)
+	end)
+end
+
+function EnumerateObjects()
+	return EnumerateEntities(FindFirstObject, FindNextObject, EndFindObject)
+end
+
+function EnumeratePeds()
+	return EnumerateEntities(FindFirstPed, FindNextPed, EndFindPed)
+end
+
+function EnumerateVehicles()
+	return EnumerateEntities(FindFirstVehicle, FindNextVehicle, EndFindVehicle)
+end
+
+function EnumeratePickups()
+	return EnumerateEntities(FindFirstPickup, FindNextPickup, EndFindPickup)
+end
+
+function GetAllVehicles() 
+	local vehicles = {}
+
+	for vehicle in EnumerateVehicles() do
+		table.insert(vehicles, vehicle)
+	end
+
+	return vehicles
+end
+
+function GetAllObjects() 
+	local objs = {}
+
+	for obj in EnumerateObjects() do
+		table.insert(objs, obj)
+	end
+
+	return objs
+end
+
+function BigDelete(entity) 
+    local playerPed = PlayerPedId()
+    carModel = GetEntityModel(entity)
+    carName = GetDisplayNameFromVehicleModel(carModel)
+    if (NetworkGetNetworkIdFromEntity(entity) ~= nil and NetworkGetNetworkIdFromEntity(entity) > 0) then
+        NetworkRequestControlOfEntity(entity)
+        
+        local timeout = 2000
+        while timeout > 0 and not NetworkHasControlOfEntity(entity) do
+            Wait(100)
+            timeout = timeout - 100
+        end
+
+        SetEntityAsMissionEntity(entity, true, true)
+        
+        local timeout = 2000
+        while timeout > 0 and not IsEntityAMissionEntity(entity) do
+            Wait(100)
+            timeout = timeout - 100
+        end
+
+        Citizen.InvokeNative( 0xEA386986E786A54F, Citizen.PointerValueIntInitialized( entity ) )
+        
+        if (DoesEntityExist(entity)) then 
+            DeleteEntity(entity)
+        end 
+    end
+end
+
+function BedCheck()
+    local objects = GetAllObjects()
+    for i=1, #objects do 
+        local obj = objects[i]
+        if (GetHashKey("inm_flatbed_base") == GetEntityModel(obj)) then 
+            local tow = false
+            local vehicles = GetAllVehicles()
+            for i=1, #vehicles do 
+                local car = vehicles[i]
+                if (GetHashKey("flatbed3") == GetEntityModel(car)) then 
+                    local car_coords = GetEntityCoords(car, false)
+                    local bed_coords = GetEntityCoords(obj, false)
+                    local dist = GetDistanceBetweenCoords(car_coords.x, car_coords.y, car_coords.z, bed_coords.x, bed_coords.y, bed_coords.z, true)
+                    if (dist < 10.0) then
+                        tow = true
+                        break
+                    end
+                end
+            end
+            if (not tow) then
+                BigDelete(obj)
+            end
+        end
+    end
+end
+
 function drawMarker(pos)
     local plyPos = GetEntityCoords(PlayerPedId(), true)
     if IsPedInAnyVehicle(PlayerPedId(), true) then
@@ -96,7 +220,7 @@ Citizen.CreateThread(function()
                 if lastBed then
                     if DoesEntityExist(lastBed) then
                         log("BED STILL EXISTS!")
-                        DeleteEntity(lastBed)
+                        BigDelete(lastBed)
                         lastBed = nil
                     end
                 end
@@ -241,8 +365,8 @@ Citizen.CreateThread(function()
                                 local newCar = getVehicleInDirection(bedPos + vector3(0.0, 0.0, 0.25), bedPos + vector3(0.0, 0.0, 2.25))
                                 if newCar then
                                     local carPos = GetEntityCoords(newCar, false)
-				    NetworkRequestControlOfEntity(newCar)
-				    while not NetworkHasControlOfEntity(newCar) do Wait(0) end
+                                    NetworkRequestControlOfEntity(newCar)
+                                    while not NetworkHasControlOfEntity(newCar) do Wait(0) end
                                     AttachEntityToEntity(newCar, bed, 0, attachmentOffset[1] + vector3(0.0, 0.0, carPos.z - bedPos.z - 0.50), attachmentOffset[2], 0, 0, false, 0, 0, 1)
                                     car = newCar
                                     DecorSetInt(veh, "flatbed3_car", VehToNet(newCar))
@@ -299,5 +423,12 @@ Citizen.CreateThread(function()
             end
         end
         Wait(0)
+    end
+end)
+-- CLIENT-DEPENDENT FLOATING BED CHECK. 
+Citizen.CreateThread(function() 
+    while true do 
+        Citizen.Wait(5000) 
+        BedCheck()
     end
 end)
